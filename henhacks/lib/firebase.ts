@@ -1,11 +1,8 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import type { Auth0User } from '../context/AuthContext';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDo6OKscdw0OFdWCe7jbXmdR29cWMyotUc",
   authDomain: "henhacks-62add.firebaseapp.com",
@@ -15,7 +12,15 @@ const firebaseConfig = {
   appId: "1:853221671275:web:62aa1bf645b9c5f954cc2e"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// ─── Upsert Auth0 user into Firestore ────────────────────────────
+export async function upsertUser(user: Auth0User): Promise<void> {
+  await setDoc(
+    doc(db, 'users', user.sub),
+    { sub: user.sub, email: user.email, name: user.name, picture: user.picture ?? null },
+    { merge: true }
+  );
+}

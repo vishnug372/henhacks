@@ -23,6 +23,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Types ─────────────────────────────────────────────────────
 interface Coordinate {
@@ -41,20 +42,18 @@ interface Listing {
   created_at: any;
 }
 
-// TODO: Replace with actual user ID from Auth
-const TEMP_USER_ID = 'test-user';
-
 export default function ProfileScreen() {
+  const { user } = useAuth();
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // ─── Fetch Listings (Real-time) ────────────────────────────────
   useEffect(() => {
-    // For now, fetch ALL active listings since we don't have auth yet
-    // Once auth is set up, add: where('seller_id', '==', currentUser.uid)
+    if (!user) return;
     const q = query(
       collection(db, 'listings'),
+      where('seller_id', '==', user.sub),
       where('status', '==', 'active'),
       orderBy('created_at', 'desc')
     );
@@ -78,7 +77,7 @@ export default function ProfileScreen() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // ─── Pull to Refresh ──────────────────────────────────────────
   const onRefresh = useCallback(() => {
