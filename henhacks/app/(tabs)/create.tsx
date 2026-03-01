@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Types ─────────────────────────────────────────────────────
 interface Coordinate {
@@ -37,6 +38,7 @@ const DEFAULT_REGION = {
 const MAX_IMAGES = 5;
 
 export default function CreateListingScreen() {
+  const { user } = useAuth();
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [price, setPrice] = useState<string>('');
@@ -113,7 +115,7 @@ export default function CreateListingScreen() {
           latitude: pinLocation!.latitude,
           longitude: pinLocation!.longitude,
         },
-        // seller_id: currentUser.uid,  // plug in after auth
+        seller_id: user?.sub,
         status: 'active',
         created_at: serverTimestamp(),
       });
