@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const redirectUri = AuthSession.makeRedirectUri({ scheme: 'exp' });
+  console.log('Auth0 redirect URI:', redirectUri);
 
   const [, response, promptAsync] = AuthSession.useAuthRequest(
     {
