@@ -17,21 +17,13 @@ import * as ImagePicker from 'expo-image-picker';
 import MapView, { Marker, MapPressEvent, MarkerDragStartEndEvent } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 // ─── Types ─────────────────────────────────────────────────────
 interface Coordinate {
   latitude: number;
   longitude: number;
-}
-
-interface Listing {
-  title: string;
-  description: string;
-  price: number;
-  images: string[];
-  pickup_location: Coordinate;
-  status: 'active' | 'sold' | 'deleted';
-  created_at: string;
 }
 
 // University of Delaware — The Green
@@ -111,41 +103,34 @@ export default function CreateListingScreen() {
 
     setIsSubmitting(true);
 
-    const listing: Listing = {
-      title: title.trim(),
-      description: description.trim(),
-      price: parseFloat(price),
-      images,
-      pickup_location: {
-        latitude: pinLocation!.latitude,
-        longitude: pinLocation!.longitude,
-      },
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-
     try {
-      // ── TODO: Replace with your actual API call ──
-      // Supabase:
-      //   const { data, error } = await supabase.from('listings').insert(listing);
-      // Firebase:
-      //   await addDoc(collection(db, 'listings'), listing);
-
-      console.log('Listing to submit:', listing);
-      await new Promise<void>((r) => setTimeout(r, 1000));
+      await addDoc(collection(db, 'listings'), {
+        title: title.trim(),
+        description: description.trim(),
+        price: parseFloat(price),
+        images, // local URIs for now — swap for storage URLs when you add Firebase Storage
+        pickup_location: {
+          latitude: pinLocation!.latitude,
+          longitude: pinLocation!.longitude,
+        },
+        // seller_id: currentUser.uid,  // plug in after auth
+        status: 'active',
+        created_at: serverTimestamp(),
+      });
 
       Alert.alert('Yeehaw! 🤠', 'Your listing is posted on the board.', [
         { text: 'OK', onPress: () => router.push('/') },
       ]);
 
+      // Reset form
       setTitle('');
       setDescription('');
       setPrice('');
       setImages([]);
       setPinLocation(null);
     } catch (err) {
+      console.error('Firestore error:', err);
       Alert.alert('Tarnation!', 'Something went wrong. Try again, cowboy.');
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
@@ -281,14 +266,6 @@ export default function CreateListingScreen() {
 }
 
 // ─── Wild West Palette ─────────────────────────────────────────
-// Background:  #FFF8E7 (aged parchment)
-// Card/Input:  #FDF1D6 (warm tan)
-// Borders:     #C4A265 (dusty gold)
-// Text:        #3B2A1A (dark leather brown)
-// Accent:      #8B0000 (saloon red)
-// Secondary:   #8B6914 (saddle brown)
-// Hint:        #A0896B (faded rope)
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -302,8 +279,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 50,
   },
-
-  // Header
   headerRow: {
     alignItems: 'center',
     marginBottom: 4,
@@ -327,8 +302,6 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     borderRadius: 1,
   },
-
-  // Labels
   label: {
     fontSize: 15,
     fontWeight: '700',
@@ -343,8 +316,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontStyle: 'italic',
   },
-
-  // Inputs
   input: {
     borderWidth: 1.5,
     borderColor: '#C4A265',
@@ -371,8 +342,6 @@ const styles = StyleSheet.create({
   priceInput: {
     flex: 1,
   },
-
-  // Images
   imageRow: {
     flexDirection: 'row',
     marginBottom: 4,
@@ -413,8 +382,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '600',
   },
-
-  // Map
   mapContainer: {
     height: 220,
     borderRadius: 10,
@@ -431,8 +398,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontStyle: 'italic',
   },
-
-  // Submit
   submitBtn: {
     backgroundColor: '#8B0000',
     borderRadius: 10,
@@ -457,8 +422,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
-
-  // Footer
   footer: {
     textAlign: 'center',
     color: '#C4A265',

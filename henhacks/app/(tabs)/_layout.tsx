@@ -31,12 +31,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Create"
+        name="create"
         options={{
           title: 'Sell',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+      />
+      
     </Tabs>
   );
 }
